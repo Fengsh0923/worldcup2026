@@ -437,6 +437,11 @@ async function loadGroups() {
 /* ============ photos ============ */
 async function loadPhotos() {
   try {
+    let zhMap = {};
+    try { /* 标题中文化缓存（本机定时翻译生成），拿不到就回退英文 */
+      const rz = await fetch("news_zh.json?t=" + Math.floor(Date.now() / 3.6e6));
+      if (rz.ok) zhMap = (await rz.json()).map || {};
+    } catch (_) {}
     const r = await fetch(NEWS);
     const d = await r.json();
     const arts = (d.articles || []).filter(a => {
@@ -453,7 +458,7 @@ async function loadPhotos() {
       html += `<a class="pcard${i === 0 ? " wide" : ""}" href="${link}" target="_blank" rel="noopener">
         <img src="${img.url}" alt="" loading="lazy">
         <div class="shade"></div>
-        <div class="cap">${a.headline || ""}<span class="meta">${when} · ESPN</span></div>
+        <div class="cap">${zhMap[(a.headline || "").trim()] || a.headline || ""}<span class="meta">${when} · ESPN</span></div>
       </a>`;
     });
     html += "</div>";
