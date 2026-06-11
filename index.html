@@ -254,6 +254,10 @@
 </div>
 
 <div id="photos" class="panel">
+  <div class="jumpbar">
+    <button data-s="cn" class="on">懂球帝</button>
+    <button data-s="espn">ESPN</button>
+  </div>
   <div id="photobody" class="loading">加载精彩瞬间中…</div>
 </div>
 
@@ -448,9 +452,10 @@ function renderPhotoCards(cards) {
   document.getElementById("photobody").innerHTML = html;
 }
 
+let photoSrc = "cn";
 async function loadPhotos() {
-  /* 首选：懂球帝中文图文缓存（本机管道每小时生成） */
-  try {
+  /* 懂球帝中文图文缓存（本机管道每小时生成）；F哥 可切 ESPN 源对比 */
+  if (photoSrc === "cn") try {
     const rc = await fetch("news_cn.json?t=" + Math.floor(Date.now() / 3.6e6));
     if (rc.ok) {
       const items = (await rc.json()).items || [];
@@ -464,7 +469,7 @@ async function loadPhotos() {
       }
     }
   } catch (_) {}
-  /* 兜底：ESPN 图文 + 翻译缓存 */
+  /* ESPN 图文 + 翻译缓存（懂球帝失效时也走这里兜底） */
   try {
     let zhMap = {};
     try {
@@ -499,11 +504,18 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.getElementById(b.dataset.p).classList.add("on");
   window.scrollTo({ top: 0 });
 });
-document.querySelectorAll(".jumpbar button").forEach(b => b.onclick = () => {
-  document.querySelectorAll(".jumpbar button").forEach(x => x.classList.remove("on"));
+document.querySelectorAll(".jumpbar button[data-j]").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".jumpbar button[data-j]").forEach(x => x.classList.remove("on"));
   b.classList.add("on");
   jumpMode = b.dataset.j;
   render();
+});
+document.querySelectorAll(".jumpbar button[data-s]").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".jumpbar button[data-s]").forEach(x => x.classList.remove("on"));
+  b.classList.add("on");
+  photoSrc = b.dataset.s;
+  document.getElementById("photobody").innerHTML = '<div class="loading">加载精彩瞬间中…</div>';
+  loadPhotos();
 });
 
 loadGroups().then(loadSched);
