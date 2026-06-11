@@ -21,6 +21,13 @@
     -webkit-font-smoothing: antialiased;
   }
   .wrap { max-width: 800px; margin: 0 auto; padding: 0 16px 90px; }
+  body::before { /* 隐约球场底纹（赛程/积分区可见，hero 自带不透明背景不受影响） */
+    content: ""; position: fixed; inset: 0; z-index: -1;
+    background: url(stadium.jpg) center 30%/cover no-repeat;
+    opacity: 0.26; filter: brightness(1.25) saturate(1.05);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  }
 
   /* ================= hero ================= */
   .hero {
@@ -162,15 +169,15 @@
     padding: 14px 16px; transition: border-color .15s;
   }
   .gcard:hover { border-color: var(--border-hi); }
-  .gcard h3 { font-size: 13px; margin-bottom: 10px; letter-spacing: 2px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-  .gcard h3 .dot { width: 8px; height: 8px; border-radius: 3px; background: var(--gc, var(--accent2)); }
-  .gcard table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .gcard th { color: var(--faint); font-weight: 400; font-size: 11px; text-align: center; padding: 3px 2px; }
+  .gcard h3 { font-size: 15px; margin-bottom: 11px; letter-spacing: 2px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .gcard h3 .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--gc, var(--accent2)); }
+  .gcard table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .gcard th { color: var(--faint); font-weight: 400; font-size: 12.5px; text-align: center; padding: 3px 2px; }
   .gcard th:first-child, .gcard td:first-child { text-align: left; }
-  .gcard td { padding: 6px 2px; text-align: center; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .gcard td { padding: 8px 2px; text-align: center; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
   .gcard td.tm { display: flex; align-items: center; gap: 8px; }
-  .gcard td.tm img { width: 20px; height: 20px; object-fit: contain; }
-  .gcard td.pts { font-weight: 800; color: var(--accent); }
+  .gcard td.tm img { width: 23px; height: 23px; object-fit: contain; }
+  .gcard td.pts { font-weight: 800; color: var(--accent); font-size: 16px; }
   .gcard tr.q td:first-child { border-left: 2px solid var(--accent); padding-left: 6px; }
 
   /* ================= photos ================= */
