@@ -257,7 +257,7 @@
   <div id="photobody" class="loading">加载精彩瞬间中…</div>
 </div>
 
-<footer>数据与图片来自 ESPN 官方公开接口 · 本页不存储任何比赛画面<br>⚽ 自用看板 · 每 60 秒自动更新比分</footer>
+<footer>赛程数据来自 ESPN · 图文资讯来自懂球帝 · 个人自用<br>⚽ 比分每 60 秒自动更新 · 资讯每小时更新</footer>
 </div>
 
 <script>
@@ -435,10 +435,39 @@ async function loadGroups() {
 }
 
 /* ============ photos ============ */
+function renderPhotoCards(cards) {
+  let html = '<div class="photogrid">';
+  cards.forEach((c, i) => {
+    html += `<a class="pcard${i === 0 ? " wide" : ""}" href="${c.link}" target="_blank" rel="noopener">
+      <img src="${c.img}" alt="" loading="lazy" referrerpolicy="no-referrer">
+      <div class="shade"></div>
+      <div class="cap">${c.title}<span class="meta">${c.when}</span></div>
+    </a>`;
+  });
+  html += "</div>";
+  document.getElementById("photobody").innerHTML = html;
+}
+
 async function loadPhotos() {
+  /* 首选：懂球帝中文图文缓存（本机管道每小时生成） */
+  try {
+    const rc = await fetch("news_cn.json?t=" + Math.floor(Date.now() / 3.6e6));
+    if (rc.ok) {
+      const items = (await rc.json()).items || [];
+      if (items.length >= 5) {
+        renderPhotoCards(items.map(it => {
+          const dt = /^\d+$/.test(it.time) ? new Date(it.time * 1000) : null;
+          return { title: it.title, img: it.img, link: it.link,
+                   when: dt ? `${dt.getMonth()+1}月${dt.getDate()}日 ${fmtT(dt)} · 懂球帝` : "懂球帝" };
+        }));
+        return;
+      }
+    }
+  } catch (_) {}
+  /* 兜底：ESPN 图文 + 翻译缓存 */
   try {
     let zhMap = {};
-    try { /* 标题中文化缓存（本机定时翻译生成），拿不到就回退英文 */
+    try {
       const rz = await fetch("news_zh.json?t=" + Math.floor(Date.now() / 3.6e6));
       if (rz.ok) zhMap = (await rz.json()).map || {};
     } catch (_) {}
@@ -449,20 +478,15 @@ async function loadPhotos() {
       return img && /\/photo\//.test(img.url);
     });
     if (!arts.length) { document.getElementById("photobody").innerHTML = '<div class="loading">暂无图片报道</div>'; return; }
-    let html = '<div class="photogrid">';
-    arts.forEach((a, i) => {
-      const img = a.images[0];
-      const link = a.links?.web?.href || "#";
+    renderPhotoCards(arts.map(a => {
       const dt = a.published ? new Date(a.published) : null;
-      const when = dt ? `${dt.getMonth()+1}月${dt.getDate()}日 ${fmtT(dt)}` : "";
-      html += `<a class="pcard${i === 0 ? " wide" : ""}" href="${link}" target="_blank" rel="noopener">
-        <img src="${img.url}" alt="" loading="lazy">
-        <div class="shade"></div>
-        <div class="cap">${zhMap[(a.headline || "").trim()] || a.headline || ""}<span class="meta">${when} · ESPN</span></div>
-      </a>`;
-    });
-    html += "</div>";
-    document.getElementById("photobody").innerHTML = html;
+      return {
+        title: zhMap[(a.headline || "").trim()] || a.headline || "",
+        img: a.images[0].url,
+        link: a.links?.web?.href || "#",
+        when: (dt ? `${dt.getMonth()+1}月${dt.getDate()}日 ${fmtT(dt)} · ` : "") + "ESPN",
+      };
+    }));
   } catch (err) {
     document.getElementById("photobody").innerHTML = '<div class="loading">加载失败，请刷新重试</div>';
   }
